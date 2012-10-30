@@ -16,6 +16,48 @@ build-type:          Simple
 cabal-version:       >=1.8
 
 library
-  exposed-modules:     Protocol
+  exposed-modules:     Database.Riak.Basic
+                       Database.Riak.Connection,
+                       Database.Riak.Lens,
+                       Database.Riak.Messages,
+                       Database.Riak.Protocol,
+                       Database.Riak.Protocol.BucketProps,
+                       Database.Riak.Protocol.Content,
+                       Database.Riak.Protocol.DeleteRequest,
+                       Database.Riak.Protocol.ErrorResponse,
+                       Database.Riak.Protocol.GetBucketRequest,
+                       Database.Riak.Protocol.GetBucketResponse,
+                       Database.Riak.Protocol.GetClientIDResponse,
+                       Database.Riak.Protocol.GetRequest,
+                       Database.Riak.Protocol.GetResponse,
+                       Database.Riak.Protocol.GetServerInfoResponse,
+                       Database.Riak.Protocol.IndexRequest,
+                       Database.Riak.Protocol.IndexRequest.IndexQueryType,
+                       Database.Riak.Protocol.IndexResponse,
+                       Database.Riak.Protocol.Link,
+                       Database.Riak.Protocol.ListBucketsResponse,
+                       Database.Riak.Protocol.ListKeysRequest,
+                       Database.Riak.Protocol.ListKeysResponse,
+                       Database.Riak.Protocol.MapReduceRequest,
+                       Database.Riak.Protocol.MapReduceResponse,
+                       Database.Riak.Protocol.Pair,
+                       Database.Riak.Protocol.PutRequest,
+                       Database.Riak.Protocol.PutResponse,
+                       Database.Riak.Protocol.SearchDocument,
+                       Database.Riak.Protocol.SearchQueryRequest,
+                       Database.Riak.Protocol.SearchQueryResponse,
+                       Database.Riak.Protocol.ServerInfo,
+                       Database.Riak.Protocol.SetBucketRequest,
+                       Database.Riak.Protocol.SetClientIDRequest
   -- other-modules:       
-  build-depends:       base ==4.6.*, attoparsec ==0.10.*, attoparsec-binary ==0.2.*, tagged ==0.4.*
+  build-depends:       base ==4.6.*,
+                       attoparsec ==0.10.*,
+                       attoparsec-binary ==0.2.*,
+                       bytestring >=0.10.0.0,
+                       tagged ==0.4.*,
+                       mtl ==2.1.*,
+                       network >=2.4.0.1,
+                       protocol-buffers ==2.0.*,
+                       protocol-buffers-descriptor ==2.0.*,
+                       lens ==3.0.*,
+                       containers ==0.5.*
