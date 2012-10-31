@@ -1,5 +1,39 @@
 {-# LANGUAGE TemplateHaskell, TypeFamilies #-}
-module Database.Riak.Lens where
+module Database.Riak.Lens (
+	SearchQueryResponse,
+	Database.Riak.Lens.numFound,
+	Database.Riak.Lens.maxScore,
+	Database.Riak.Lens.documents,
+	Database.Riak.Lens.start,
+	Database.Riak.Lens.sort,
+	Database.Riak.Lens.rows,
+	Database.Riak.Lens.searchQuery,
+	Database.Riak.Lens.presort,
+	Database.Riak.Lens.operation,
+	Database.Riak.Lens.fieldsLimit,
+	Database.Riak.Lens.searchFilter,
+	Database.Riak.Lens.df,
+	Database.Riak.Lens.returnHead,
+	Database.Riak.Lens.returnBody,
+	Database.Riak.Lens.ifNotModified,
+	Database.Riak.Lens.ifNoneMatch,
+	response,
+	phase,
+	request,
+	buckets,
+	tag,
+	rangeMin,
+	rangeMax,
+	qtype,
+	serverVersion,
+	node,
+	unchanged,
+	notFoundOk,
+	ifModified,
+	onlyHead,
+	deletedVClock,
+	basicQuorum
+) where
 import Control.Lens
 import Data.ByteString.Lazy (ByteString)
 import Data.Char
@@ -66,6 +100,24 @@ let overloaded =  [ "r", "pr", "w", "pw", "dw", "vclock"
 		, ''SetBktReq.SetBucketRequest
 		, ''SetClientIDReq.SetClientIDRequest
 		]
+
+searchQuery :: Simple Lens SearchReq.SearchQueryRequest ByteString
+searchQuery = q
+
+operation :: Simple Lens SearchReq.SearchQueryRequest (Maybe ByteString)
+operation = op
+
+fieldsLimit :: Simple Lens SearchReq.SearchQueryRequest (Seq ByteString)
+fieldsLimit = fl
+
+searchFilter :: Simple Lens SearchReq.SearchQueryRequest (Maybe ByteString)
+searchFilter = Database.Riak.Lens.filter
+
+onlyHead :: Simple Lens GetReq.GetRequest (Maybe Bool)
+onlyHead = Database.Riak.Lens.head
+
+deletedVClock :: Simple Lens GetReq.GetRequest (Maybe Bool)
+deletedVClock = Database.Riak.Lens.deletedvclock
 
 class HasR a where
 	r :: Simple Lens a (Maybe M.Quorum)
