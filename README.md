@@ -32,7 +32,7 @@ Feature matrices are based upon Basho's [Client Library Page](http://docs.basho.
 | Feature                              | Supported |
 | ------------------------------------ | --------- |
 | List buckets                         | ✓         |
-| List keys                            | ✓         |
+| List keys                            | ✗         |
 | Get bucket properties                | ✓         |
 | Set bucket properties                | ✓         |
 | Fetch object                         | ✓         |
@@ -40,7 +40,7 @@ Feature matrices are based upon Basho's [Client Library Page](http://docs.basho.
 | Store object                         | ✓         |
 | Store w/quorums                      | ✓         |
 | Delete object                        | ✓         |
-| MapReduce                            | ✓         |
+| MapReduce                            | ✗         |
 | Secondary Indexes (emulated, native) | ✓ ✓       |
 | Search (emulated, native)            | ✓ ✓       |
 | Ping                                 | ✓         |
@@ -50,21 +50,21 @@ Feature matrices are based upon Basho's [Client Library Page](http://docs.basho.
 
 ### Additional features
 
-| Feature                                | Supported |
-| -------------------------------------- | --------- |
-| Cluster connections/pools              | ✗         |
-| Retry failures (on other nodes)        | ✗         |
-| Failure-sensitive node selection       | ✗         |
-| Automatic protocol selection           | ✗         |
-| Use arbitrary media types              | ✗         |
-| JSON (de-)serialization                | ✗         |
-| Other included (de-)serializers        | ✗         |
-| Custom (de-)serializers                | ✗         |
-| Exposes siblings                       | ✗         |
-| Sibling resolution policies/strategies | ✗         |
-| Mutators (encapsulating change ops)    | ✗         |
-| Abstract domain types w/reification    | ✗         |
-| Embedded/nested domain types           | ✗         |
-| Domain-level sibling resolution        | ✗         |
-| Secondary index integration            | ✗         |
-| Search integration                     | ✗         |
+| Feature                                | Supported         |
+| -------------------------------------- | ----------------- |
+| Cluster connections/pools              | single node pools |
+| Retry failures (on other nodes)        | ✗                 |
+| Failure-sensitive node selection       | ✗                 |
+| Automatic protocol selection           | ✗                 |
+| Use arbitrary media types              | ✓                 |
+| JSON (de-)serialization                | ✓                 |
+| Other included (de-)serializers        | ✗                 |
+| Custom (de-)serializers                | ✗                 |
+| Exposes siblings                       | ✗                 |
+| Sibling resolution policies/strategies | ✗                 |
+| Mutators (encapsulating change ops)    | ✗                 |
+| Abstract domain types w/reification    | ✗                 |
+| Embedded/nested domain types           | ✗                 |
+| Domain-level sibling resolution        | ✗                 |
+| Secondary index integration            | ✗                 |
+| Search integration                     | ✗                 | 

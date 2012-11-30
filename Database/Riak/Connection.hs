@@ -1,21 +1,56 @@
 {-# LANGUAGE TypeFamilies #-}
-module Database.Riak.Connection where
+module Database.Riak.Connection (
+  ConnectionSettings(..),
+  riakPool,
+  RiakConnectionPool,
+  RiakConnection(..),
+  Connection,
+  connect,
+  disconnect,
+  runRequest,
+  decodeRecv
+) where
 import qualified Network.Socket as S
 import Data.IORef
+import Data.Maybe
+import Data.Pool
+import Data.Time.Clock
 import Database.Riak.Messages
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString.Lazy.Builder
 import Network.Socket.ByteString.Lazy
 import Text.ProtocolBuffers.Get
 
+data ConnectionSettings = ConnectionSettings
+  { host               :: Maybe String
+  , port               :: Maybe Int
+  , connectionTimeout  :: Maybe NominalDiffTime
+  , connectionsPerPool :: Maybe Int
+  , pools              :: Maybe Int
+  }
+
+riakPool :: ConnectionSettings -> IO RiakConnectionPool
+riakPool s = fmap RiakConnectionPool $ createPool (connect (host s) (port s)) disconnect 
+  (fromMaybe 3 $ pools s)
+  (fromMaybe 30 $ connectionTimeout s)
+  (fromMaybe 10 $ connectionsPerPool s)
+
+newtype RiakConnectionPool = RiakConnectionPool
+  { fromRiakConnectionPool :: Pool Connection
+  }
+
+class RiakConnection c where
+  withConnection :: c -> (Connection -> IO a) -> IO a
+
 data Connection = Connection
   { connSocket :: S.Socket
   , connLeftovers :: IORef L.ByteString
   }
 
-connect = do
+connect :: Maybe S.HostName -> Maybe Int -> IO Connection
+connect h p = do
   let hints = S.defaultHints { S.addrFlags = [S.AI_ADDRCONFIG], S.addrSocketType = S.Stream }
-  ais <- S.getAddrInfo (Just hints) (Just "localhost") (Just "8087")
+  ais <- S.getAddrInfo (Just hints) h (Just $ maybe "8087" show p)
   let ai = head ais
   s <- S.socket (S.addrFamily ai) (S.addrSocketType ai) (S.addrProtocol ai)
   S.setSocketOption s S.NoDelay 1
@@ -25,14 +60,13 @@ connect = do
 
 disconnect = S.close . connSocket
 
-withConnection :: (Connection -> IO a) -> IO a
-withConnection f = do
-  conn <- connect
-  result <- f conn
-  disconnect conn
-  return result
+instance RiakConnection Connection where
+  withConnection c f = f c
 
-request b c = do
+instance RiakConnection RiakConnectionPool where
+  withConnection p = withResource (fromRiakConnectionPool p)
+
+runRequest b c = do
   sendRequest c b
   decodeRecv c
 

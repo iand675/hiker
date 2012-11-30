@@ -19,6 +19,7 @@ library
   exposed-modules:     Database.Riak,
                        Database.Riak.Basic,
                        Database.Riak.Connection,
+                       Database.Riak.JSON,
                        Database.Riak.Lens,
                        Database.Riak.Messages,
                        Database.Riak.Protocol,
@@ -61,4 +62,7 @@ library
                        protocol-buffers ==2.0.*,
                        protocol-buffers-descriptor ==2.0.*,
                        lens ==3.0.*,
-                       containers ==0.5.*
+                       containers ==0.5.*,
+                       time ==1.4.*,
+                       resource-pool ==0.2.*,
+                       aeson ==0.6.*

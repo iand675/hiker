@@ -12,6 +12,7 @@ import Data.Monoid hiding (All)
 import Data.Data
 import Data.Typeable
 import Data.Word
+import Debug.Trace
 import Text.ProtocolBuffers.Reflections
 import Text.ProtocolBuffers.WireMessage hiding (Get, Put)
 
@@ -111,16 +112,18 @@ parseResponse = do
     0x10 -> (ListBuckets . protoGet) <$> pbs
     0x12 -> do
       val <- pbs
+      trace (show val) (return ())
       let first = protoGet val
-      if LK.done first == (Just True)
+      if LK.done first == Just True
         then return $ ListKeys [first]
         else parseKeyList (first :)
     0x14 -> (GetBucket . protoGet) <$> pbs
     0x16 -> pure SetBucket
     0x18 -> do
       val <- pbs
+      trace (show val) (return ())
       let first = protoGet val
-      if MR.done first == (Just True)
+      trace (show first) $ if MR.done first == (Just True)
         then return $ MapReduce [first]
         else parseMapReduceResults (first :)
     0x1A -> (Index . protoGet) <$> pbs

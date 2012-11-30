@@ -20,7 +20,7 @@ module Database.Riak (
 	B.getBucket,
 	B.setBucket,
 	B.mapReduce,
-	B.index,
+	B.indexQuery,
 	B.searchQuery,
 	B.runRiak,
 	numFound,
@@ -127,7 +127,8 @@ module Database.Riak (
 	SearchQueryRequest,
 	SearchQueryResponse,
 	SetBucketRequest,
-	SetClientIDRequest
+	SetClientIDRequest,
+	module Database.Riak.Connection
 ) where
 import qualified Control.Lens as Lens
 
@@ -136,6 +137,7 @@ import Data.Sequence (Seq)
 import Data.Word
 
 import qualified Database.Riak.Basic as B
+import Database.Riak.Connection
 import qualified Database.Riak.Messages as M
 import qualified Database.Riak.Lens as L
 import Database.Riak.Protocol.BucketProps           (BucketProps)
