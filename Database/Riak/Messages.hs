@@ -129,6 +129,7 @@ parseResponse = do
         else parseMapReduceResults (first :)
     0x1A -> (Index . protoGet) <$> pbs
     0x1C -> (SearchQuery . protoGet) <$> pbs
+    responseCode -> throw $ ProtocolError $ "Unrecognized response type: " ++ show responseCode
 
 parseKeyList f = do
   len <- anyWord32be
