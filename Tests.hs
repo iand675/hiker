@@ -1,9 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Operations where
+module Tests where
 import Control.Exception
+import Control.Lens
 import Control.Monad
 import Data.ByteString.Lazy.Char8
+import qualified Data.Sequence as S
 import Database.Riak
+import Database.Riak.Protocol.BucketProps
 import Test.Hspec
 import Test.Hspec.Expectations.Contrib
 import Test.HUnit
@@ -47,7 +50,9 @@ basicCommands = describe "Basic Commands" $ do
   deleteSpecs
 
 getSpecs = describe "Database.Riak.get" $ do
-  return ()
+  it "can handle a get with no contents" $ do
+    result <- withRiak $ get $ basic ("random-bucket-whatever" :: ByteString) ("supercalifragilisticexpialidocious" :: ByteString)
+    assertEqual "result is empty" (content ^$ result) S.empty
 
 putSpecs = describe "Database.Riak.put" $ do
   return ()
@@ -56,16 +61,25 @@ deleteSpecs = describe "Database.Riak.delete" $ do
   return ()
 
 listBucketsSpecs = describe "Database.Riak.listBuckets" $ do
-  return ()
+  it "lists buckets without exploding" $ do
+    withRiak $ void listBuckets
 
 listKeysSpecs = describe "Database.Riak.listKeys" $ do
-  return ()
+  it "lists empty bucket without exploding" $ do
+    withRiak $ void $ listKeys $ BucketName "jumping-beans-123-zippity-dee"
+  it "lists bucket with 1 element without exploding" $ do
+    withRiak $ void $ listKeys $ BucketName "one-element-bucket"
+  it "lists buckets with lots of keys without exploding" $ do
+    withRiak $ void $ listKeys $ BucketName "many-element-bucket"
+    withRiak $ void $ listKeys $ BucketName "task"
 
 getBucketSpecs = describe "Database.Riak.getBucket" $ do
-  return ()
+  it "doesn't explode." $ do
+    withRiak $ void $ getBucket $ BucketName "thingum"
 
 setBucketSpecs = describe "Database.Riak.setBucket" $ do
-  return ()
+  it "sets values like a boss" $ do
+    withRiak $ void $ setBucket $ basic ("thingum" :: ByteString) (BucketProps (Just 3) (Just False))
 
 mapReduceSpecs = describe "Database.Riak.mapReduce" $ do
   return ()

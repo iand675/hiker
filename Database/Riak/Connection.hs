@@ -16,9 +16,10 @@ import Data.Maybe
 import Data.Pool
 import Data.Time.Clock
 import Database.Riak.Messages
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 import Data.ByteString.Lazy.Builder
-import Network.Socket.ByteString.Lazy
+import Network.Socket.ByteString
 import Text.ProtocolBuffers.Get
 
 data ConnectionSettings = ConnectionSettings
@@ -44,7 +45,7 @@ class RiakConnection c where
 
 data Connection = Connection
   { connSocket :: S.Socket
-  , connLeftovers :: IORef L.ByteString
+  , connLeftovers :: IORef B.ByteString
   }
 
 connect :: Maybe S.HostName -> Maybe Int -> IO Connection
@@ -55,7 +56,7 @@ connect h p = do
   s <- S.socket (S.addrFamily ai) (S.addrSocketType ai) (S.addrProtocol ai)
   S.setSocketOption s S.NoDelay 1
   S.connect s $ S.addrAddress ai
-  left <- newIORef L.empty
+  left <- newIORef B.empty
   return $! Connection s left
 
 disconnect = S.close . connSocket
@@ -70,12 +71,18 @@ runRequest b c = do
   sendRequest c b
   decodeRecv c
 
-decodeRecv c = do
-  bs <- recv (connSocket c) window
-  let (value, remainder) = getResponse bs
-  writeIORef (connLeftovers c) remainder
-  return $! value
-  where 
-    window = 16384
+decodeRecv c = decodeRecv' c getResponse
 
-sendRequest c r = send (connSocket c) $ toLazyByteString $ fromRequest r
+decodeRecv' c f = do
+  bs <- recv (connSocket c) window
+  let response = handleRemaining bs f
+  case response of
+    Left f' -> decodeRecv' c f'
+    Right (value, remainder) -> do
+      writeIORef (connLeftovers c) remainder
+      return $! value
+  where
+    window = 16384
+       
+
+sendRequest c r = sendMany (connSocket c) $ L.toChunks $ toLazyByteString $ fromRequest r

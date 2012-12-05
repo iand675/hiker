@@ -4,15 +4,14 @@ module Database.Riak.Messages where
 import Control.Applicative
 import Control.Exception
 import Data.Attoparsec.Binary
-import qualified Data.Attoparsec.Lazy as P
+import qualified Data.Attoparsec as P
 import Data.ByteString (ByteString)
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
-import qualified Data.ByteString.Lazy.Builder as B
+import qualified Data.ByteString.Lazy.Builder as LB
 import Data.Monoid hiding (All)
 import Data.Data
-import Data.Typeable
 import Data.Word
-import Debug.Trace
 import Text.ProtocolBuffers.Reflections
 import Text.ProtocolBuffers.WireMessage hiding (Get, Put)
 
@@ -44,7 +43,7 @@ data RiakException = ProtocolError String
 
 instance Exception RiakException
 
-newtype Request = Request { fromRequest :: B.Builder }
+newtype Request = Request { fromRequest :: LB.Builder }
 newtype VClock = VClock { fromVClock :: L.ByteString }
 newtype BucketName = BucketName { fromBucketName :: L.ByteString }
   deriving (Show, Read, Eq, Ord)
@@ -90,10 +89,14 @@ data Response = Error !ErrorResponse
               | SearchQuery !SearchQueryResponse
   deriving (Show, Eq)
 
-getResponse :: L.ByteString -> (Response, L.ByteString)
-getResponse bs = case P.parse parseResponse bs of
-  P.Fail r _ e -> throw $ ProtocolError e
-  P.Done r msg -> (msg, r)
+getResponse :: B.ByteString -> P.Result Response
+getResponse = P.parse parseResponse
+
+handleRemaining :: B.ByteString -> (B.ByteString -> P.Result Response) -> Either (B.ByteString -> P.Result Response) (Response, B.ByteString)
+handleRemaining bs f = case f bs of
+  P.Fail _ _ e -> throw $ ProtocolError e
+  P.Partial f' -> Left f'
+  P.Done r msg -> Right (msg, r)
 
 parseResponse :: P.Parser Response
 parseResponse = do
@@ -112,7 +115,6 @@ parseResponse = do
     0x10 -> (ListBuckets . protoGet) <$> pbs
     0x12 -> do
       val <- pbs
-      trace (show val) (return ())
       let first = protoGet val
       if LK.done first == Just True
         then return $ ListKeys [first]
@@ -121,9 +123,8 @@ parseResponse = do
     0x16 -> pure SetBucket
     0x18 -> do
       val <- pbs
-      trace (show val) (return ())
       let first = protoGet val
-      trace (show first) $ if MR.done first == (Just True)
+      if MR.done first == (Just True)
         then return $ MapReduce [first]
         else parseMapReduceResults (first :)
     0x1A -> (Index . protoGet) <$> pbs
@@ -132,7 +133,7 @@ parseResponse = do
 parseKeyList f = do
   len <- anyWord32be
   code <- P.anyWord8
-  pbs <- P.take $ fromIntegral len
+  pbs <- P.take $ fromIntegral $ len - 1
   case code of
     0x12 -> let next = protoGet pbs in if LK.done next == (Just True)
       then return $ ListKeys $ f [next]
@@ -142,7 +143,7 @@ parseKeyList f = do
 parseMapReduceResults f = do
   len <- anyWord32be
   code <- P.anyWord8
-  pbs <- P.take $ fromIntegral len
+  pbs <- P.take $ fromIntegral $ len - 1
   case code of
     0x18 -> let next = protoGet pbs in if MR.done next == (Just True)
       then return $ MapReduce $ f [next]
@@ -195,7 +196,7 @@ searchQuery :: SearchQueryRequest -> Request
 searchQuery = protoRequest 0x1B
 
 emptyRequest :: Word8 -> Request
-emptyRequest = Request . (B.word32BE 1 <>) . B.word8
+emptyRequest = Request . (LB.word32BE 1 <>) . LB.word8
 
 protoRequest :: (ReflectDescriptor msg, Wire msg) => Word8 -> msg -> Request
-protoRequest code msg = Request ((B.word32BE $ fromIntegral $ 1 + messageSize msg) <> B.word8 code <> (B.lazyByteString $ messagePut msg))
+protoRequest code msg = Request ((LB.word32BE $ fromIntegral $ 1 + messageSize msg) <> LB.word8 code <> (LB.lazyByteString $ messagePut msg))
