@@ -85,7 +85,8 @@ mapReduceSpecs = describe "Database.Riak.mapReduce" $ do
   return ()
 
 indexQuerySpecs = describe "Database.Riak.indexQuery" $ do
-  return ()
+  it "continues to not explode." $ do
+    (return () :: IO ())
 
 searchQuerySpecs = describe "Database.Riak.searchQuery" $ do
   return ()

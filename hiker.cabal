@@ -51,6 +51,7 @@ library
                        Database.Riak.Protocol.ServerInfo,
                        Database.Riak.Protocol.SetBucketRequest,
                        Database.Riak.Protocol.SetClientIDRequest
+                       Database.Riak.SecondaryIndex
   -- other-modules:       
   build-depends:       base ==4.6.*,
                        attoparsec ==0.10.*,
